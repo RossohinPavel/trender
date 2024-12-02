@@ -49,8 +49,8 @@ class TableRender {
             this.clearTable();
             this.table = document.createElement('table');
             if ( this.base.tbody ) {
-                const header = this.createHeader(); 
-                header && this.table.appendChild(header);
+                // const header = this.createHeader(); 
+                // header && this.table.appendChild(header);
                 this.table.append(this.createBody(this.base.tbody));
                 const footer = this.createFooter();
                 footer && this.table.appendChild(footer);
