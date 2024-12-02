@@ -43,6 +43,25 @@ class TableRender {
     }
 
     /**
+     * Что не понятно? рендерит новую табличку взамен старой.
+     */
+        render() {
+            this.clearTable();
+            this.table = document.createElement('table');
+            if ( this.base.tbody ) {
+                const header = this.createHeader(); 
+                header && this.table.appendChild(header);
+                this.table.append(this.createBody(this.base.tbody));
+                const footer = this.createFooter();
+                footer && this.table.appendChild(footer);
+            } else {
+                this.table.appendChild(this.createNoResult());
+            }
+            this.parentDiv.appendChild(this.table);
+            updateSorting();
+        }
+
+    /**
      * Удаляет все дочерние элементы объекта html
      * @param {object} parent - Объект html
      */
@@ -51,6 +70,125 @@ class TableRender {
             parent.removeChild(parent.firstChild);
         }
     }
+
+    /**
+     * Создает html-элемент <name>, наделяет его дочерними
+     * элементами values и возвращает его. 
+     * Если нет ни одного элемента в <values>, то вернет false
+     * @param {string} tagName - Тип html-элемента
+     * @param {ArrayLike} values - Массив из html-элемнтов для вставки.
+     * @returns {Node}
+     */
+    _createAndAppend(tagName, values) {
+        let flag = false;
+        const element = document.createElement(tagName);
+        for ( const value of values ) {
+            flag = true;
+            element.appendChild(value);
+        }
+        return flag && element;
+    }
+
+    /**
+     * Создает и возвращает ячейку таблицы
+     * @param {string} tagName - Тип ячейки
+     * @param {*} value - Значение, которое нужно вставить в ячейку
+     * @returns {Node}
+     */
+    _createCell(tagName, value) {
+        const cell = document.createElement(tagName);
+        cell.innerHTML = value;
+        return cell;
+    }
+
+    /**
+     * Создает и возвращает тело таблицы.
+     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
+     * @return {Node}
+     */
+    createBody(values) {
+        const rows = this.createBodyRows(values);
+        return this._createAndAppend('tbody', rows);
+    }
+
+    /**
+     * Вызывает getBodyRows и применяет к каждому значению createBodyRow.
+     * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
+     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
+     * @returns {Array<Node>}
+     */
+    *createBodyRows(values) {
+        const rawRows = this.getBodyRows(values);
+        for ( const row of rawRows ) {
+            yield this.createBodyRow(row);
+        }
+    }
+
+    /**
+     * Метод возвращающий строки для тела таблицы в виде массива.
+     * Целевое использование - переопределение порядка следования строк.
+     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
+     * @returns {ArrayLike<ArrayLike>}
+     */
+    getBodyRows(values) {
+        return Object.values(values);
+    }
+
+
+    /**
+     * На основе переданного <values> создает <tr> элемент для тела таблицы и возвращает его.
+     * @param {ArrayLike} values - Строка со значениями для тела таблицы
+     * @returns {Node}
+     */
+    createBodyRow(values) {
+        const cells = this.createBodyCells(values);
+        return this._createAndAppend('tr', cells);
+    }
+
+    /**
+     * Вызывает getBodyCells и применяет к каждому значению createBodyRow.
+     * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
+     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
+     * @returns {Array<Node>}
+     */
+    *createBodyCells(values) {
+        const rawCells = this.getBodyCells(values);
+        for ( const cell of rawCells ) {
+            yield this._createCell('td', cell);
+        }
+    }
+
+    /**
+     * Метод для получения значений ячеек для строки тела таблицы.
+     * Целевое использование - определение порядка следования ячеек.
+     * @param {ArrayLike} values - Строка в таблице
+     * @returns {ArrayLike} 
+     */
+    getBodyCells(values) {
+        return Object.values(values);
+    }
+
+
+
+
+    newMethod() {
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /**
      * Cоздает и возвращает основной элемент таблицы
@@ -116,25 +254,6 @@ class TableRender {
     }
 
     /**
-     * Что не понятно? рендерит новую табличку взамен старой.
-     */
-    render() {
-        this.clearTable();
-        this.table = document.createElement('table');
-        if ( this.base.tbody ) {
-            const header = this.createHeader(); 
-            header && this.table.appendChild(header);
-            this.table.append(this.createBody());
-            const footer = this.createFooter();
-            footer && this.table.appendChild(footer);
-        } else {
-            this.table.appendChild(this.createNoResult());
-        }
-        this.parentDiv.appendChild(this.table);
-        updateSorting();
-    }
-
-    /**
      * Создает и возвращает загаловок таблицы.
      * @return {Node}
      */
@@ -142,16 +261,6 @@ class TableRender {
         const rawRows = this.getHeaderRows();
         const rows = this.createHeaderRows(rawRows);
         return this._createMainElement('head', rows);
-    }
-
-    /**
-     * Создает и возвращает тело таблицы.
-     * @return {Node}
-     */
-    createBody() {
-        const rawRows = this.getBodyRows();
-        const rows = this.createBodyRows(rawRows);
-        return this._createMainElement('body', rows);
     }
 
     /**
@@ -165,54 +274,16 @@ class TableRender {
     }
 
     /**
-     * Метод возвращающий строки для заголовка таблицы в виде массива.
-     * Целевое использование - переопределение порядка следования строк.
-     * @returns {ArrayLike<ArrayLike>}
-     */
-    getHeaderRows() {
-        const headers = this.base.thead || [];
-        return Object.values(headers);
-    }
-
-    /**
-     * Метод возвращающий строки для тела таблицы в виде массива.
-     * Целевое использование - переопределение порядка следования строк.
-     * @returns {ArrayLike<ArrayLike>}
-     */
-    getBodyRows() {
-        return Object.values(this.base.tbody);
-    }
-
-    /**
-     * Метод возвращающий строки для футера таблицы в виде массива.
-     * Целевое использование - переопределение порядка следования строк.
-     * @returns {ArrayLike<ArrayLike>}
-     */
-    getFooterRows() {
-        const footers = this.base.tfoot || [];
-        return Object.values(footers);
-    }
-
-    /**
      * Перебирает каждую строку и применяет к ней метод createHeaderRow
-     * @param {ArrayLike<ArrayLike>} values - Массив строк таблицы
+     * @param {ArrayLike<ArrayLike>} values - Массив строк таблицыcreateHeader
      * @returns {Array<Node>}
      */
     createHeaderRows(values) {
         if ( values.length === 0 ) {
-            const rawCells = this.createHeaderCells(this.headers);
+            const rawCells = this.createHeaderCells(this.headers);createHeader
             return [this._createRow(rawCells)];
         }
         return this._createRows(values, 'createHeaderRow');
-    }
-
-    /**
-     * Перебирает каждую строку и применяет к ней метод createBodyRow
-     * @param {ArrayLike<ArrayLike>} values - Массив строк таблицы
-     * @returns {Array<Node>}
-     */
-    createBodyRows(values) {
-        return this._createRows(values, 'createBodyRow')
     }
 
     /**
@@ -240,21 +311,32 @@ class TableRender {
      * @param {rawRow} - Сырая Строка таблицы, необработанные значения
      * @returns {Node}
      */
-    createBodyRow(rawRow) {
-        const rawCells = this.getBodyCells(rawRow);
-        const cells = this.createBodyCells(rawCells);
-        return this._createRow(cells);
-    }
-
-    /**
-     * Оборачивает значения в <tr>
-     * @param {rawRow} - Сырая Строка таблицы, необработанные значения
-     * @returns {Node}
-     */
     createFooterRow(rawRow) {
         const rawCells = this.getFooterCells(rawRow);
         const cells = this.createFooterCells(rawCells);
         return this._createRow(cells);
+    }
+
+    /**
+     * Метод возвращающий строки для заголовка таблицы в виде массива.
+     * Целевое использование - переопределение порядка следования строк.
+     * @returns {ArrayLike<ArrayLike>}
+     */
+        getHeaderRows() {
+            const headers = this.base.thead || [];
+            return Object.values(headers);
+        }
+    
+
+
+    /**
+     * Метод возвращающий строки для футера таблицы в виде массива.
+     * Целевое использование - переопределение порядка следования строк.
+     * @returns {ArrayLike<ArrayLike>}
+     */
+    getFooterRows() {
+        const footers = this.base.tfoot || [];
+        return Object.values(footers);
     }
 
     /**
@@ -267,15 +349,7 @@ class TableRender {
         return [...this.headers, ...Object.values(rawRow)];
     }
 
-    /**
-     * Метод для получения значений ячеек для строки тела таблицы.
-     * Целевое использование - определение порядка следования ячеек.
-     * @param {ArrayLike} rawRow - Строка в таблице
-     * @returns {ArrayLike} 
-     */
-    getBodyCells(rawRow) {
-        return Object.values(rawRow);
-    }
+
 
     /**
      * Метод для получения значений ячеек для строки футера таблицы.
@@ -299,14 +373,7 @@ class TableRender {
         }
     }
 
-    /**
-     * Создает ячейки для строки тела таблицы
-     * @param {ArrayLike} rawCells 
-     * @returns {Generator<Node>}
-     */
-    createBodyCells(rawCells) {
-        return this._createCells(rawCells);
-    }
+
 
     /**
      * Создает ячейки для строки футера таблицы
