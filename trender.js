@@ -28,8 +28,7 @@
  */
 class TableRender {
     // Статичные заголовки для таблицы можно указать в виде массива
-
-    headers = ['test'];
+    headers = ['Table'];
 
     /**
      * Конструктор
@@ -37,7 +36,7 @@ class TableRender {
      * @param {string} divId - id тега <div> где будет отрисовываться таблица.
      * @param {string} tableId - id для таблицы. Если таблиц несколько, стоит позаботиться об уникальности этого значения.
      */
-    constructor(base, divId = 'table', tableId = 'newTable') {
+    constructor(base, divId = 'table', tableId = 'new-table') {
         this.base = base;
         this.divId = divId;
         this.tableId = tableId;
@@ -92,7 +91,7 @@ class TableRender {
         this.clearTable();
         this.table = document.createElement('table');
         this.table.id = this.tableId;
-        if ( this.base.tbody ) {
+        if ( this.base && this.base.tbody ) {
             const header = this.createHeader(this.base.thead); 
             header && this.table.appendChild(header);
             this.table.append(this.createBody(this.base.tbody));
@@ -102,6 +101,7 @@ class TableRender {
             this.table.appendChild(this.createNoResult());
         }
         this.parentDiv.appendChild(this.table);
+        this.table.setAttribute('class', `table trender ${this.tableId}`);
         updateSorting();
     }
 
@@ -342,8 +342,7 @@ class TableRender {
      * Отрисовка нет результата
      */
     createNoResult() {
-        this.base = {'tbody': {0: ['Нет результата']}};
-        return this.createBody();
+        return this.createBody({'tbody': {0: ['Нет результата']}});
     }
 }
 
@@ -373,16 +372,19 @@ function updateSorting() {
             th.setAttribute("style", `min-width: ${th.clientWidth + 24}px`);
         };
         let direction = document.createElement('object');
-        direction.data='src/arrow-up.svg';
+        direction.innerHTML = UP;
+        direction.data = 'up';
         direction.width='15px';
         direction.height='15px';
         direction.className = 'arrow';
         //   let direction = document.createElement('span');
         if (currentDirection.includes('up')) {
-            direction.data='src/arrow-down.svg';
+            direction.innerHTML = DOWN;
+            direction.data = 'down';
             this.asc = false;
         } else {
-            direction.data='src/arrow-up.svg';
+            direction.innerHTML = UP;
+            direction.data = 'up';
                 this.asc = true;
         };
 
@@ -396,3 +398,7 @@ function updateSorting() {
             .forEach(tr => tbody.appendChild(tr));
   })));
 };
+
+
+const UP = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5"/></svg>'
+const DOWN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1"/></svg>'
