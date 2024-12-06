@@ -14,8 +14,10 @@
  * @author    dfx-17
  * @link
  *
- * @version 1.0.2 Release
+ * @version 1.0.4
  * 
+ * v1.0.4 (06.12.2024) Переписана та всратая фукнция сортировки результата. Реализовано адекватное отображение стрелочек сортировки.
+ * v1.0.3 (05.12.2024) Дебаг для нет результата.
  * v1.0.2 (03.12.2024) Поправлена основная логика обработки данных. Причесан код.
  * v1.0.1 (02.12.2024) Добавлена сортировка
  * v1.0.0 (01.12.2024) Начато написание test
@@ -39,19 +41,9 @@ class TableRender {
     constructor(base, divId = 'table', tableId = 'new-table') {
         this.base = base;
         this.divId = divId;
-        this.tableId = tableId;
+        this.id = tableId;
         this.parentDiv = document.getElementById(divId);
         this.table = null;
-    }
-
-    /**
-     * Удаляет все дочерние элементы объекта html
-     * @param {object} parent - Объект html
-     */
-    _removeAllChildren(parent) {
-        while (parent.firstChild) {
-            parent.removeChild(parent.firstChild);
-        }
     }
 
     /**
@@ -90,8 +82,9 @@ class TableRender {
     render() {
         this.clearTable();
         this.table = document.createElement('table');
-        this.table.id = this.tableId;
-        if ( this.base && this.base.tbody ) {
+        this.table.setAttribute('class', `table trender ${this.id}`);
+        this.table.id = this.id;
+        if ( this.base?.tbody && Object.keys(this.base.tbody).length ) {
             const header = this.createHeader(this.base.thead); 
             header && this.table.appendChild(header);
             this.table.append(this.createBody(this.base.tbody));
@@ -101,7 +94,6 @@ class TableRender {
             this.table.appendChild(this.createNoResult());
         }
         this.parentDiv.appendChild(this.table);
-        this.table.setAttribute('class', `table trender ${this.tableId}`);
         updateSorting();
     }
 
@@ -311,94 +303,136 @@ class TableRender {
      * Очищает таблицу от старых значений
      */
     clearTable() {
-        this._removeAllChildren(this.parentDiv);
+        _removeAllChildren(this.parentDiv);
     }
 
     /**
      * Очищает заголовки таблицы
      */
     clearHeader() {
-        const header = document.getElementById(this.tableId).thead;
-        this._removeAllChildren(header);
+        const header = document.getElementById(this.id).thead;
+        _removeAllChildren(header);
     };
 
     /**
      * Очищает тело таблицы
      */
     clearBody() {
-        const body = document.getElementById(this.tableId).tbody;
-        this._removeAllChildren(body);
+        const body = document.getElementById(this.id).tbody;
+        _removeAllChildren(body);
     }
 
     /**
      * Очищает футер таблицы
      */
     clearFooter() {
-        const footer = document.getElementById(this.tableId).tfoot;
-        this._removeAllChildren(footer);
+        const footer = document.getElementById(this.id).tfoot;
+        _removeAllChildren(footer);
     }
 
     /**
      * Отрисовка нет результата
      */
     createNoResult() {
-        return this.createBody({'tbody': {0: ['Нет результата']}});
+        const cell = this._createCell('td', 'Нет результата');
+        const row = this._createAndAppend('tr', [cell]);
+        return this._createAndAppend('tbody', [row]);
     }
 }
 
 
-const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-      v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
-  )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+function _sortTable(th) {
+    return function() {
+        let sortDirection;
+        switch ( th.getAttribute('sort') ) {
+            case 'asc':
+                sortDirection = 'desc';
+                break;
+            case 'desc':
+            default:
+                sortDirection = 'asc';
+        }
+        th.setAttribute('sort', sortDirection);
+        th.setAttribute('style', 'display:flex;justify-content:center');
+        let currentText;
+        let arrow = sortDirection == 'asc' ? UP : DOWN;
+        if ( th.children.length < 2 ) {
+            currentText = document.createElement('span');
+            currentText.innerHTML = th.innerHTML;
+        } else {
+            currentText = th.firstChild;
+        }
+        _removeAllChildren(th);
+        th.appendChild(currentText);
+        th.appendChild(arrow);
+        _clearHeaders(th);
+        _initSort(th, sortDirection);
+    }
+}
 
-// do the work...
+
+// Чистит заголовки таблицы для функции sortTable
+function _clearHeaders(th) {
+    const headers = th.closest('thead');
+    for ( const row of headers.children ) {
+        for ( const otherHeader of row.children ) {
+            if ( otherHeader != th ) {
+                otherHeader.removeAttribute('sort');
+                otherHeader.removeAttribute('style');
+                if ( otherHeader.children.length > 0 ) {
+                    otherHeader.innerHTML = otherHeader.firstChild.innerHTML;
+                }
+            }
+        }
+    }
+}
+
+
+// непосредственно, сама сортировОчка
+function _initSort(th, direction) {
+    const tbody = th.closest('table').querySelector('tbody');
+    const collIndex = Array.from(th.parentNode.children).indexOf(th);
+    const tableArray = Array.from(tbody.querySelectorAll('tr:not(.total-row)'));
+    tableArray.sort(comparer(collIndex, direction == 'asc'));
+    tableArray.forEach(tr => tbody.appendChild(tr));
+}
+
+
+function comparer(index, asc) {
+    return function (a, b) {
+        let left = getCellValue(a, index);
+        let right = getCellValue(b, index);
+        if ( asc ) {
+            [left, right] = [right, left];
+        }
+        if (left !== '' && right !== '' && !isNaN(left) && !isNaN(right)) {
+            return left - right;
+        }
+        return left.toString().localeCompare(right);
+    }
+}
+
+
+// Получает текстовое значение tr
+function getCellValue(tr, index) {
+    return tr.children[index].innerText || tr.children[index].textContent;
+}
+
+
+// Удаляет все дочерние элементы
+function _removeAllChildren(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
+
+
+// Заного переназначает слушателя для начала сортировки.
 function updateSorting() {
-    document.querySelectorAll('th:not(.footer)').forEach(th => th.addEventListener('click', (() => {
-        let currentDirection = th.lastChild;
-        if (currentDirection.tagName) {
-            currentDirection = currentDirection.data;
-        } else {
-            currentDirection = 'up';
-        };
-        let tableHead = document.querySelectorAll('th');
-        tableHead.forEach(tableHead => {
-            tableHead.removeAttribute("style");
-            if (tableHead.childElementCount > 0) {              
-                tableHead.removeChild(tableHead.lastChild);                
-            };
-        });
-        if ( th.clientWidth < 150 ) {
-            th.setAttribute("style", `min-width: ${th.clientWidth + 24}px`);
-        };
-        let direction = document.createElement('object');
-        direction.innerHTML = UP;
-        direction.data = 'up';
-        direction.width='15px';
-        direction.height='15px';
-        direction.className = 'arrow';
-        //   let direction = document.createElement('span');
-        if (currentDirection.includes('up')) {
-            direction.innerHTML = DOWN;
-            direction.data = 'down';
-            this.asc = false;
-        } else {
-            direction.innerHTML = UP;
-            direction.data = 'up';
-                this.asc = true;
-        };
-
-        th.appendChild(direction);
-        //   th.appendChild(icon);
-        const table = th.closest('table');
-        const tbody = table.querySelector('tbody');
-
-        Array.from(tbody.querySelectorAll('tr:not(.total-row)'))
-            .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = this.asc))
-            .forEach(tr => tbody.appendChild(tr));
-  })));
+    document.querySelectorAll('th:not(.footer)')
+    .forEach(th => th.addEventListener('click', _sortTable(th)));
 };
 
 
-const UP = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5"/></svg>'
-const DOWN = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1"/></svg>'
+const UP = document.createRange().createContextualFragment('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5"/></svg>').firstElementChild;
+const DOWN = document.createRange().createContextualFragment('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1"/></svg>').firstElementChild;

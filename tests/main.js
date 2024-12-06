@@ -1,5 +1,10 @@
 function main(event) {
     event.preventDefault();
+    showTable();
+}
+
+
+function showTable() {
     const table = new TableRender(sample, 'report');
     table.render();
 }
@@ -10,7 +15,7 @@ form.addEventListener('submit', main);
 
 
 const sample = {
-    'thead': {0: [1, 2]},
+    'thead': {0: ['Заголовок', 'Pfujk']},
     "tbody": {
         "Тележка садовая Крестьянка с поворотными колёсами": {
             "code": "11-00144349",
@@ -184,7 +189,7 @@ const sample = {
             "quotas": 0
         }
     },
-    "tfoot": {
+    "tfoot1": {
         "Тележка садовая Крестьянка с поворотными колёсами": {
             "code": "11-00144349",
             "id": 6988,
@@ -358,3 +363,4 @@ const sample = {
         }
     }
 }
+showTable();
