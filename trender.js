@@ -14,8 +14,9 @@
  * @author    dfx-17
  * @link
  *
- * @version 1.0.4
+ * @version 1.0.5
  * 
+ * v1.0.5 (13.12.2024) Фикс направления сортировки и расположение стрелочки рядом с текстом
  * v1.0.4 (06.12.2024) Переписана та всратая фукнция сортировки результата. Реализовано адекватное отображение стрелочек сортировки.
  * v1.0.3 (05.12.2024) Дебаг для нет результата.
  * v1.0.2 (03.12.2024) Поправлена основная логика обработки данных. Причесан код.
@@ -353,9 +354,7 @@ function _sortTable(th) {
                 sortDirection = 'asc';
         }
         th.setAttribute('sort', sortDirection);
-        th.setAttribute('style', 'display:flex;justify-content:center');
         let currentText;
-        let arrow = sortDirection == 'asc' ? UP : DOWN;
         if ( th.children.length < 2 ) {
             currentText = document.createElement('span');
             currentText.innerHTML = th.innerHTML;
@@ -364,9 +363,9 @@ function _sortTable(th) {
         }
         _removeAllChildren(th);
         th.appendChild(currentText);
-        th.appendChild(arrow);
-        _clearHeaders(th);
+        th.appendChild(sortDirection == 'asc' ? UP : DOWN);
         _initSort(th, sortDirection);
+        _clearHeaders(th);
     }
 }
 
@@ -374,16 +373,23 @@ function _sortTable(th) {
 // Чистит заголовки таблицы для функции sortTable
 function _clearHeaders(th) {
     const headers = th.closest('thead');
+    const table = headers.closest('table');
     for ( const row of headers.children ) {
-        for ( const otherHeader of row.children ) {
-            if ( otherHeader != th ) {
+        Array(...row.children).forEach((otherHeader, index) => {
+            if ( otherHeader != th && otherHeader.children.length > 0) {
+                // Очистка измененного элемента
+                otherHeader.innerHTML = otherHeader.firstChild.innerHTML;
                 otherHeader.removeAttribute('sort');
                 otherHeader.removeAttribute('style');
-                if ( otherHeader.children.length > 0 ) {
-                    otherHeader.innerHTML = otherHeader.firstChild.innerHTML;
+            } 
+            if (otherHeader == th) {
+                const thRect = th.firstChild.getBoundingClientRect();
+                const bCellRect = table.children[1].rows[0].cells[index].getBoundingClientRect();
+                if ( thRect.width + 10 > bCellRect.width ) {
+                    th.setAttribute('style', `width:${parseInt(thRect.width) + 20}px`);
                 }
             }
-        }
+        });
     }
 }
 
@@ -402,7 +408,7 @@ function comparer(index, asc) {
     return function (a, b) {
         let left = getCellValue(a, index);
         let right = getCellValue(b, index);
-        if ( asc ) {
+        if ( !asc ) {
             [left, right] = [right, left];
         }
         if (left !== '' && right !== '' && !isNaN(left) && !isNaN(right)) {
