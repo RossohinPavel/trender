@@ -15,7 +15,7 @@ form.addEventListener('submit', main);
 
 
 const sample = {
-    'thead': {0: ['Заголовок', 'Pfujk']},
+    'thead': {0: ['Заголовок', 'Pfujk', 'small', 'toooooo big', 'more than three words', 'last']},
     "tbody": {
         "Тележка садовая Крестьянка с поворотными колёсами": {
             "code": "11-00144349",

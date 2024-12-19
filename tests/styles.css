@@ -23,27 +23,6 @@ hr {
   margin: 0px;
 }
 
-.selectize-control, .date-select-field, .form-control {
-  min-width: 220px;
-  margin-right: 10px;
-}
-
-.selectize-control.multi .selectize-input>div {
-  background: #0d6efd;
-  color: #fff
-}
-
-.selectize-control.multi .selectize-input.has-items {
-  padding-left: 5px;
-}
-
-.btn {
-  margin-right: 10px;
-}
-
-#date {
-  width: 220px;
-}
 
 #report {
   margin-top: 10px;
@@ -55,33 +34,14 @@ hr {
 }
 
 
-.blur-all {
-  filter: blur(10px);
-}
-
-.arrow {
-  float:right;
-  margin-top: 4.5px;
-}
-
-#report-table th:not(.footer) {
+#new-table th:not(.footer) {
   cursor: pointer;
 }
 
-#report-table th:hover:not(.footer) {
+#new-table th:hover:not(.footer) {
   background-color: #f8f9fa;
 }
 
-#report-table tbody tr:hover {
+#new-table tbody tr:hover {
   background-color: #f8f9fa;
-}
-
-.form-check-input {
-  margin-top: 6px;
-  margin-right: 2px;
-}
-
-.form-check-label {
-  margin-top: 5px;
-  margin-right: 10px;
 }
