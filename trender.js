@@ -14,9 +14,14 @@
  * @author    dfx-17
  * @link
  *
- * @version 1.0.5 
- */
- 
+ * @version 1.0.5
+ *
+ * @TODO Автозаполнение пустых ячеек недостающими значениями по типу rfill или lfill
+ * @TODO Группировка по атрибуту (Указываем атрибут, а перед ним или после вызывать какой-нибуть метод)
+ * @TODO попилить на модули.
+ * @TODO Переписать на тупескрипт
+ * @TODO Статичные значения для боди и футера, как для хэдера
+
 
 
 /**
@@ -374,7 +379,7 @@ function _clearHeaders(th) {
                 otherHeader.innerHTML = otherHeader.firstChild.innerHTML;
                 otherHeader.removeAttribute('sort');
                 otherHeader.removeAttribute('style');
-            } 
+            }
             if (otherHeader == th) {
                 const thRect = th.firstChild.getBoundingClientRect();
                 const bCellRect = table.children[1].rows[0].cells[index].getBoundingClientRect();
@@ -414,7 +419,7 @@ function comparer(index, asc) {
 
 // Получает текстовое значение tr
 function getCellValue(tr, index) {
-    return tr.children[index].innerText || tr.children[index].textContent;
+    return tr.children[index].innerText || tr.children[index].textContent.trim();
 }
 
 
@@ -426,11 +431,11 @@ function _removeAllChildren(parent) {
 }
 
 
-// Заного переназначает слушателя для начала сортировки.
+// Заново переназначает слушателя для начала сортировки.
 function updateSorting() {
     document.querySelectorAll('th:not(.footer)')
     .forEach(th => th.addEventListener('click', _sortTable(th)));
-};
+}
 
 
 const UP = document.createRange().createContextualFragment('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5"/></svg>').firstElementChild;
