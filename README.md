@@ -13,6 +13,6 @@
 
 ## License:
 
-MIT
+<a href="https://github.com/RossohinPavel/trender/blob/main/LICENSE">MIT</a>
 
-Copyright (c) 2024-present, Pavel Rossohin
+Copyright (c) 2024-present, <a href="https://github.com/RossohinPavel">Rossohin Pavel</a>
