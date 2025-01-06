@@ -1,0 +1,28 @@
+{
+  "name": "trender",
+  "version": "1.0.0",
+  "description": "Небольшой скриптик облегчающий создание таблиц.",
+  "main": "trender.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RossohinPavel/trender.git"
+  },
+  "keywords": [],
+  "author": "Pavel Rossohin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RossohinPavel/trender/issues"
+  },
+  "homepage": "https://github.com/RossohinPavel/trender#readme",
+  "dependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  }
+}
