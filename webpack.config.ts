@@ -1,8 +1,8 @@
-// webpack.config.js
-const path = require('path')
+import path from 'path';
+import webpack from 'webpack';
 
 
-module.exports = [
+const config: webpack.Configuration = 
     {
         mode: 'production',
         entry: {
@@ -28,19 +28,7 @@ module.exports = [
         optimization: {
             minimize: false,
         }
-    },
-    // {
-    //     mode: 'production',
-    //     entry: {
-    //         main: path.resolve(__dirname, './src/index.js'),
-    //     },
-    //     output: {
-    //         path: path.resolve(__dirname, './dist'),
-    //         filename: 'trender.min.js',
-    //         iife: false
-    //     },
-    //     optimization: {
-    //         minimize: true,
-    //     }
-    // },
-]
+    }
+;
+
+export default config;
