@@ -1,5 +1,6 @@
 import * as types from "./types";
 import * as service from "./service";
+import updateSorting from "./sorting/sorting";
 
 /**
  * Основной класс, который будет рендерить таблицу.
@@ -43,7 +44,7 @@ class Trender {
         this.clear();
         this.table = this.createTable();
         this.parentDiv.appendChild(this.table);
-        // updateSorting();
+        updateSorting();
     }
 
     /**
