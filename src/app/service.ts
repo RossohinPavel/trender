@@ -2,7 +2,7 @@
  * Удаляет все дочерние элементы.
  * @param parent DOM-элемент, дочерние элементы которого нужно удалить.
  */
-export function removeAllChildren(parent: HTMLElement) {
+export function removeChildrens(parent: HTMLElement) {
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
     }

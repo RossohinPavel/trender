@@ -1,5 +1,5 @@
-import sample from "./mock";
-import Trender from "./app/main";
+import sample from "../test/data.json";
+import { Trender } from "./app/main";
 
 
 function main(event: MouseEvent): void {

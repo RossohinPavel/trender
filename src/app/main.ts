@@ -5,7 +5,7 @@ import updateSorting from "./sorting/sorting";
 /**
  * Основной класс, который будет рендерить таблицу.
  */
-class Trender {
+export class Trender {
     // Аргументы конструктора
     data: types.tableData;
     divId: string;
@@ -34,7 +34,7 @@ class Trender {
      * Очищает <div> связанный с таблицей от всех дочерних элементов.
      */
     clear() {
-        service.removeAllChildren(this.parentDiv);
+        service.removeChildrens(this.parentDiv);
     }
 
     /**
@@ -54,7 +54,7 @@ class Trender {
         const table = document.createElement('table');
         table.setAttribute('class', 'trender');
         table.id = this.id;
-        if ( Object.keys(this.data.tbody).length ) {
+        if ( this.data.tbody && Object.keys(this.data.tbody).length ) {
             // Рендерим заголовки таблицы
             const header = this.createHeader(); 
             header && table.appendChild(header);
@@ -261,4 +261,3 @@ class Trender {
         return service.createAndAppend('tbody', [row]);
     }
 }
-export default Trender;

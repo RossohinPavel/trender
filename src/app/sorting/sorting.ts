@@ -1,4 +1,4 @@
-import { removeAllChildren } from "../service";
+import { removeChildrens } from "../service";
 import { UP, DOWN } from './assets';
 
 
@@ -27,7 +27,7 @@ function sortTable(th: HTMLTableColElement) {
     } else {
         currentText = th.firstChild;
     }
-    removeAllChildren(th);
+    removeChildrens(th);
     th.appendChild(currentText);
     th.appendChild(sortDirection == 'asc' ? UP : DOWN);
     initSort(th, sortDirection);
