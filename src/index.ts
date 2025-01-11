@@ -1,4 +1,5 @@
 import sample from "./mock";
+import Trender from "./app/main";
 
 
 function main(event: MouseEvent): void {
@@ -8,11 +9,12 @@ function main(event: MouseEvent): void {
 
 
 function showTable(): void {
-    console.log(sample);
-    // const table = new TableRender(sample, 'report');
-    // table.render();
+    const table = new Trender({data: sample});
+    table.render();
 };
 
 
 const form = document.getElementById('form-filters');
 form.addEventListener('submit', main);
+
+document.addEventListener("DOMContentLoaded", showTable);

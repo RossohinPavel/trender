@@ -5,12 +5,13 @@ export function removeAllChildren(parent: HTMLElement) {
     }
 }
 
-type cellValue = HTMLElement | string | number;
+type cellValue = HTMLElement | string | number | object;
 
 export function createElement(tagName: string, value: cellValue): HTMLElement {
     const element = document.createElement(tagName);
     switch (typeof value) {
-        case 'number':
+        case 'object':
+        case 'number' :
             element.innerText = value.toString();
             break;
         case 'string':

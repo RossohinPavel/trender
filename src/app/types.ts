@@ -1,5 +1,9 @@
 export type cell = string | number | object;
+
 export type row = {[key:string]: cell} | cell[];
-export type tablePart = {[key:string]: row} | row[];
-export type table = {thead?: tablePart, tbody: tablePart, tfoot?: tablePart, [key:string]: any}
-export type trenderArgs = {data: table, divId: string, id: string};
+
+export type tableSection = {[key:string]: row} | row[];
+
+export type tableData = {thead?: tableSection, tbody: tableSection, tfoot?: tableSection, [key:string]: any}
+
+export type trenderArgs = {data: tableData, divId?: string, id?: string};

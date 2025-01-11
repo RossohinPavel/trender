@@ -1,12 +1,12 @@
-import * as t from "./types";
-import * as s from "./service";
+import * as types from "./types";
+import * as service from "./service";
 
 /**
  * Основной класс, который будет рендерить таблицу.
  */
 class Trender {
     // Аргументы конструктора
-    data: t.ITable;
+    data: types.tableData;
     divId: string;
     id: string;
     // Атрибуты объекта
@@ -17,12 +17,12 @@ class Trender {
 
     /**
      * Конструктор
-     * @param {Object} config
-     * @param {t.ITable} config.data Дата, на основе которой будет строиться таблица
-     * @param {string} config.divId Id тэга <div>, где будет отрисовываться таблица
-     * @param {string} config.id Можно задать свой id для идентификации таблицы.
+     * @param config
+     * @param config.data Дата, на основе которой будет строиться таблица
+     * @param config.divId Id тэга <div>, где будет отрисовываться таблица
+     * @param config.id Можно задать свой id для идентификации таблицы.
      */
-    constructor({data, divId='table', id='trender'}: t.ITrenderArgs) {
+    constructor({data, divId='trender', id='trender'}: types.trenderArgs) {
         this.data = data;
         this.divId = divId;
         this.id = id;
@@ -32,8 +32,8 @@ class Trender {
     /**
      * Очищает <div> связанный с таблицей от всех дочерних элементов.
      */
-    clear(): void {
-        s.removeAllChildren(this.parentDiv);
+    clear() {
+        service.removeAllChildren(this.parentDiv);
     }
 
     /**
@@ -55,13 +55,13 @@ class Trender {
         table.id = this.id;
         if ( Object.keys(this.data.tbody).length ) {
             // Рендерим заголовки таблицы
-            const header = this.createHeader(this.data.thead); 
+            const header = this.createHeader(); 
             header && table.appendChild(header);
             // Рендерим тело
-            const body = this.createBody(this.data.tbody);
-            this.table.append(body);
+            const body = this.createBody();
+            table.appendChild(body);
             // Рендерим футер
-            const footer = this.createFooter(this.data.tfoot);
+            const footer = this.createFooter();
             footer && table.appendChild(footer);
         } else {
             const noResult = this.createNoResult();
@@ -72,44 +72,38 @@ class Trender {
 
     /**
      * Создает и возвращает Заголовки таблицы.
-     * @param {t.tablePart} values - Массив строк заголовков таблицы
-     * @returns {HTMLElement}
      */
-    createHeader(values: ArrayLike<any>): HTMLElement {
-        const headerValues = values || [[]];
+    createHeader(): HTMLTableSectionElement {
+        const headerValues = this.data.thead || [[]];
         const rows = this.createHeaderRows(headerValues);
-        return s.createAndAppend('thead', rows);
+        return service.createAndAppend('thead', rows) as HTMLTableSectionElement;
     }
 
     /**
      * Создает и возвращает тело таблицы.
-     * @param {t.tablePart} values - Массив строк тела таблицы
-     * @return {HTMLElement}
      */
-    createBody(values: ArrayLike<any>): HTMLElement {
-        const rows = this.createBodyRows(values);
-        return s.createAndAppend('tbody', rows);
+    createBody(): HTMLTableSectionElement {
+        const rows = this.createBodyRows(this.data.tbody);
+        return service.createAndAppend('tbody', rows) as HTMLTableSectionElement;
     }
 
     /**
      * Создает и возвращает Нижнюю часть таблицы.
-     * @param {t.tablePart} values - Массив строк  футера таблицы
-     * @return {HTMLElement}
      */
-    createFooter(values: ArrayLike<any>): HTMLElement {
-        const footerValues = values || [];
+    createFooter(): HTMLTableSectionElement {
+        const footerValues = this.data.tfoot || [];
         const rows = this.createFooterRows(footerValues);
-        return s.createAndAppend('tfoot', rows);
+        return service.createAndAppend('tfoot', rows) as HTMLTableSectionElement;
     }
 
     /**
      * Вызывает getHeaderRows и применяет к каждому значению createHeaderRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {t.tablePart} values - Массив строк заголовков таблицы
+     * @param rawRows Массив или объект содержащий заголовки таблицы
      */
-    *createHeaderRows(values: ArrayLike<any>): Generator<HTMLElement> {
-        const rawRows = this.getHeaderRows(values);
-        for ( const row of rawRows ) {
+    *createHeaderRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getHeaderRows(rawRows);
+        for ( const row of rows ) {
             yield this.createHeaderRow(row);
         }
     }
@@ -117,11 +111,11 @@ class Trender {
     /**
      * Вызывает getBodyRows и применяет к каждому значению createBodyRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {t.tablePart} values - Массив строк тела таблицы
+     * @param rawRows Массив или объект содержащий значения для тела таблицы
      */
-    *createBodyRows(values: ArrayLike<any>) {
-        const rawRows = this.getBodyRows(values);
-        for ( const row of rawRows ) {
+    *createBodyRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getBodyRows(rawRows);
+        for ( const row of rows ) {
             yield this.createBodyRow(row);
         }
     }
@@ -129,11 +123,11 @@ class Trender {
     /**
      * Вызывает getFooterRows и применяет к каждому значению createFooterRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {t.tablePart} values - Массив строк нижней части таблицы
+     * @param rawRows Массив или объект содержащий значения для футера таблицы
      */
-    *createFooterRows(values: ArrayLike<any>) {
-        const rawRows = this.getFooterRows(values);
-        for ( const row of rawRows ) {
+    *createFooterRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getFooterRows(rawRows);
+        for ( const row of rows ) {
             yield this.createFooterRow(row);
         }
     }
@@ -141,140 +135,129 @@ class Trender {
     /**
      * Метод возвращающий строки для заголовка таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк заголовков таблицы
-     * @returns {ArrayLike<ArrayLike>}
+     * @param rawRows Массив или объект содержащий заголовки таблицы
      */
-    getHeaderRows(values: ArrayLike<any>) {
-        return Object.values(values);
+    getHeaderRows(rawRows: types.tableSection): types.row[] {
+        return Object.values(rawRows);
     }
 
     /**
      * Метод возвращающий строки для тела таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
-     * @returns {ArrayLike<ArrayLike>}
+     * @param rawRows Массив или объект содержащий значения для тела таблицы
      */
-    getBodyRows(values: ArrayLike<any>) {
-        return Object.values(values);
+    getBodyRows(rawRows: types.tableSection): types.row[] {
+        return Object.values(rawRows);
     }
 
     /**
      * Метод возвращающий строки для футера таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк футера таблицы
-     * @returns {ArrayLike<ArrayLike>}
+     * @param rawRows Массив или объект содержащий значения для футера таблицы
      */
-    getFooterRows(values: ArrayLike<any>) {
-        return Object.values(values);
+    getFooterRows(rawRows: types.tableSection): types.row[] {
+        return Object.values(rawRows);
     }
 
     /**
-     * На основе переданного <values> создает <tr> элемент для заголовков таблицы и возвращает его.
-     * @param {ArrayLike} values - Строка со значениями для заголовков таблицы
-     * @returns {Node}
+     * На основе переданного <raw> создает <tr> элемент для заголовков таблицы и возвращает его.
+     * @param row Строка со значениями для заголовков таблицы
      */
-    createHeaderRow(values: ArrayLike<any>) {
-        const cells = this.createHeaderCells(values);
-        return s.createAndAppend('tr', cells);
+    createHeaderRow(row: types.row): HTMLTableRowElement {
+        const cells = this.createHeaderCells(row);
+        return service.createAndAppend('tr', cells) as HTMLTableRowElement;
     }
 
     /**
-     * На основе переданного <values> создает <tr> элемент для тела таблицы и возвращает его.
-     * @param {ArrayLike} values - Строка со значениями для тела таблицы
-     * @returns {Node}
+     * На основе переданного <raw> создает <tr> элемент для тела таблицы и возвращает его.
+     * @param row Строка со значениями для тела таблицы
      */
-    createBodyRow(values: ArrayLike<any>) {
-        const cells = this.createBodyCells(values);
-        return s.createAndAppend('tr', cells);
+    createBodyRow(row: types.row): HTMLTableRowElement {
+        const cells = this.createBodyCells(row);
+        return service.createAndAppend('tr', cells) as HTMLTableRowElement;;
     }
 
     /**
-     * На основе переданного <values> создает <tr> элемент для футера таблицы и возвращает его.
-     * @param {ArrayLike} values - Строка со значениями для футера таблицы
-     * @returns {Node}
+     * На основе переданного <raw> создает <tr> элемент для футера таблицы и возвращает его.
+     * @param row Строка со значениями для футера таблицы
      */
-    createFooterRow(values: ArrayLike<any>) {
-        const cells = this.createFooterCells(values);
-        return s.createAndAppend('tr', cells);
+    createFooterRow(row: types.row): HTMLTableRowElement {
+        const cells = this.createFooterCells(row);
+        return service.createAndAppend('tr', cells) as HTMLTableRowElement;;
     }
 
     /**
      * Вызывает getHeaderCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк заголовков таблицы
-     * @returns {Array<Node>}
+     * @param row Массив строк заголовков таблицы
      */
-    *createHeaderCells(values: ArrayLike<any>) {
-        const rawCells = this.getHeaderCells(values);
-        for ( const rawCell of rawCells ) {
-            const cell = s.createElement('th', rawCell);
+    *createHeaderCells(row: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getHeaderCells(row);
+        for ( const rawCell of cells ) {
+            const cell = service.createElement('th', rawCell);
             cell.setAttribute('scope', 'col');
-            yield cell;
+            yield cell as HTMLTableCellElement;
         }
     }
 
     /**
      * Вызывает getBodyCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк тела таблицы
-     * @returns {Array<Node>}
+     * @param row Массив строк тела таблицы
      */
-    *createBodyCells(values: ArrayLike<any>) {
-        const rawCells = this.getBodyCells(values);
-        for ( const cell of rawCells ) {
-            yield s.createElement('td', cell);
+    *createBodyCells(row: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getBodyCells(row);
+        for ( const cell of cells ) {
+            yield service.createElement('td', cell) as HTMLTableCellElement;
         }
     }
 
     /**
      * Вызывает getFooterCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param {ArrayLike<ArrayLike>} values - Массив строк футера таблицы
-     * @returns {Array<Node>}
+     * @param row - Массив строк футера таблицы
      */
-    *createFooterCells(values: ArrayLike<any>) {
-        const rawCells = this.getFooterCells(values);
-        for ( const cell of rawCells ) {
-            yield s.createElement('td', cell);
+    *createFooterCells(row: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getFooterCells(row);
+        for ( const cell of cells ) {
+            yield service.createElement('td', cell) as HTMLTableCellElement;
         }
     }
 
     /**
      * Метод для получения значений ячеек для строки заголовка таблицы.
      * Целевое использование - определение порядка следования ячеек.
-     * @param {ArrayLike} values - Строка в таблице
-     * @returns {ArrayLike} 
+     * @param row Строка в таблице
      */
-    getHeaderCells(values: ArrayLike<any>) {
-        return [...this.headers, ...Object.values(values)];
+    getHeaderCells(row: types.row): types.cell[] {
+        return [...this.headers, ...Object.values(row)];
     }
 
     /**
      * Метод для получения значений ячеек для строки тела таблицы.
      * Целевое использование - определение порядка следования ячеек.
-     * @param {ArrayLike} values - Строка в таблице
-     * @returns {ArrayLike} 
+     * @param row Строка в таблице
      */
-    getBodyCells(values: ArrayLike<any>) {
-        return Object.values(values);
+    getBodyCells(row: types.row): types.cell[] {
+        return Object.values(row);
     }
 
     /**
      * Метод для получения значений ячеек для строки футера таблицы.
      * Целевое использование - определение порядка следования ячеек.
-     * @param {ArrayLike} values - Строка в таблице
-     * @returns {ArrayLike} 
+     * @param row Строка в таблице
      */
-    getFooterCells(values: ArrayLike<any>) {
-        return Object.values(values);
+    getFooterCells(row: types.row): types.cell[] {
+        return Object.values(row);
     }
 
     /**
      * Отрисовка нет результата
      */
     createNoResult() {
-        const cell = s.createElement('td', 'Нет результата');
-        const row = s.createAndAppend('tr', [cell]);
-        return s.createAndAppend('tbody', [row]);
+        const cell = service.createElement('td', 'Нет результата');
+        const row = service.createAndAppend('tr', [cell]);
+        return service.createAndAppend('tbody', [row]);
     }
 }
+export default Trender;
