@@ -1,5 +1,10 @@
-import sample from "../test/data.json";
+import sample from "./data.json";
 import { Trender } from "./app/main";
+
+
+class CustomTrender extends Trender {
+    // headers: string[] = ['NewHeader'];
+}
 
 
 function main(event: MouseEvent): void {
@@ -9,8 +14,8 @@ function main(event: MouseEvent): void {
 
 
 function showTable(): void {
-    const table = new Trender({data: sample});
-    table.render();
+    const table = new CustomTrender(sample);
+    table.render('trender');
 };
 
 

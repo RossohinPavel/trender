@@ -2,48 +2,37 @@ import * as types from "./types";
 import * as service from "./service";
 import updateSorting from "./sorting/sorting";
 
+
 /**
  * Основной класс, который будет рендерить таблицу.
  */
 export class Trender {
-    // Аргументы конструктора
+    // Типизация для входящей даты
     data: types.tableData;
-    divId: string;
-    id: string;
-    // Атрибуты объекта
-    parentDiv: HTMLElement;
-    table: HTMLTableElement;
-    // Статичные заголовки для таблицы можно указать в виде массива
-    headers = ['Trender'];
+
+    // Предустановленные атрибуты
+    id = 'trender';
+    class = '';
+    debug = false;
+    headers: string[] = [];
 
     /**
      * Конструктор
-     * @param config
-     * @param config.data Дата, на основе которой будет строиться таблица
-     * @param config.divId Id тэга <div>, где будет отрисовываться таблица
-     * @param config.id Можно задать свой id для идентификации таблицы.
+     * @param data Дата, на основе которой будет строиться таблица
      */
-    constructor({data, divId='trender', id='trender'}: types.trenderArgs) {
+    constructor(data: types.tableData) {
         this.data = data;
-        this.divId = divId;
-        this.id = id;
-        this.parentDiv = document.getElementById(divId);
-    }
-
-    /**
-     * Очищает <div> связанный с таблицей от всех дочерних элементов.
-     */
-    clear() {
-        service.removeChildrens(this.parentDiv);
     }
 
     /**
      * Рендерит новую табличку взамен старой.
+     * @param parent Тег (div), внутри которого будет отрендерена атаблица.
      */
-    render() {
-        this.clear();
-        this.table = this.createTable();
-        this.parentDiv.appendChild(this.table);
+    render(parent: string) {
+        const div = document.getElementById(parent);
+        service.removeChildrens(div);
+        const table = this.createTable();
+        div.appendChild(table);
         updateSorting();
     }
 
@@ -52,8 +41,8 @@ export class Trender {
      */
     createTable(): HTMLTableElement {
         const table = document.createElement('table');
-        table.setAttribute('class', 'trender');
         table.id = this.id;
+        this.class && table.setAttribute('class', this.class);
         if ( this.data.tbody && Object.keys(this.data.tbody).length ) {
             // Рендерим заголовки таблицы
             const header = this.createHeader(); 
@@ -72,10 +61,26 @@ export class Trender {
     }
 
     /**
+     * Отрисовка нет результата
+     */
+    createNoResult() {
+        const cell = service.createElement('td', 'Нет результата');
+        const row = service.createAndAppend('tr', [cell]);
+        return service.createAndAppend('tbody', [row]);
+    }
+
+    /**
      * Создает и возвращает Заголовки таблицы.
      */
     createHeader(): HTMLTableSectionElement {
-        const headerValues = this.data.thead || [[]];
+        let headerValues;
+        if ( this.data.thead ) {
+            headerValues = this.data.thead;
+        } else if ( this.headers.length ) {
+            headerValues = [this.headers];
+        } else {
+            return;
+        }
         const rows = this.createHeaderRows(headerValues);
         return service.createAndAppend('thead', rows) as HTMLTableSectionElement;
     }
@@ -100,10 +105,10 @@ export class Trender {
     /**
      * Вызывает getHeaderRows и применяет к каждому значению createHeaderRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param rawRows Массив или объект содержащий заголовки таблицы
+     * @param headerValues Массив или объект содержащий заголовки таблицы
      */
-    *createHeaderRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
-        const rows = this.getHeaderRows(rawRows);
+    *createHeaderRows(headerValues: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getHeaderRows(headerValues);
         for ( const row of rows ) {
             yield this.createHeaderRow(row);
         }
@@ -112,10 +117,10 @@ export class Trender {
     /**
      * Вызывает getBodyRows и применяет к каждому значению createBodyRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param rawRows Массив или объект содержащий значения для тела таблицы
+     * @param bodyValues Массив или объект содержащий значения для тела таблицы
      */
-    *createBodyRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
-        const rows = this.getBodyRows(rawRows);
+    *createBodyRows(bodyValues: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getBodyRows(bodyValues);
         for ( const row of rows ) {
             yield this.createBodyRow(row);
         }
@@ -124,10 +129,10 @@ export class Trender {
     /**
      * Вызывает getFooterRows и применяет к каждому значению createFooterRow.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param rawRows Массив или объект содержащий значения для футера таблицы
+     * @param footerValues Массив или объект содержащий значения для футера таблицы
      */
-    *createFooterRows(rawRows: types.tableSection): Generator<HTMLTableRowElement> {
-        const rows = this.getFooterRows(rawRows);
+    *createFooterRows(footerValues: types.tableSection): Generator<HTMLTableRowElement> {
+        const rows = this.getFooterRows(footerValues);
         for ( const row of rows ) {
             yield this.createFooterRow(row);
         }
@@ -136,92 +141,96 @@ export class Trender {
     /**
      * Метод возвращающий строки для заголовка таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param rawRows Массив или объект содержащий заголовки таблицы
+     * @param headerValues Массив или объект содержащий заголовки таблицы
      */
-    getHeaderRows(rawRows: types.tableSection): types.row[] {
-        return Object.values(rawRows);
+    *getHeaderRows(headerValues: types.tableSection): Generator<types.row> {
+        for ( const row of Object.values(headerValues) ) {
+            yield row;
+        }
     }
 
     /**
      * Метод возвращающий строки для тела таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param rawRows Массив или объект содержащий значения для тела таблицы
+     * @param bodyValues Массив или объект содержащий значения для тела таблицы
      */
-    getBodyRows(rawRows: types.tableSection): types.row[] {
-        return Object.values(rawRows);
+    *getBodyRows(bodyValues: types.tableSection): Generator<types.row> {
+        for ( const row of Object.values(bodyValues) ) {
+            yield row;
+        }
     }
 
     /**
      * Метод возвращающий строки для футера таблицы в виде массива.
      * Целевое использование - переопределение порядка следования строк.
-     * @param rawRows Массив или объект содержащий значения для футера таблицы
+     * @param footerValues Массив или объект содержащий значения для футера таблицы
      */
-    getFooterRows(rawRows: types.tableSection): types.row[] {
-        return Object.values(rawRows);
+    *getFooterRows(footerValues: types.tableSection): Generator<types.row> {
+        for ( const row of Object.values(footerValues) ) {
+            yield row;
+        }
     }
 
     /**
-     * На основе переданного <raw> создает <tr> элемент для заголовков таблицы и возвращает его.
-     * @param row Строка со значениями для заголовков таблицы
+     * На основе переданного rowValues создает <tr> элемент для заголовков таблицы и возвращает его.
+     * @param rowValues Строка со значениями для заголовков таблицы
      */
-    createHeaderRow(row: types.row): HTMLTableRowElement {
-        const cells = this.createHeaderCells(row);
+    createHeaderRow(rowValues: types.row): HTMLTableRowElement {
+        const cells = this.createHeaderCells(rowValues);
         return service.createAndAppend('tr', cells) as HTMLTableRowElement;
     }
 
     /**
-     * На основе переданного <raw> создает <tr> элемент для тела таблицы и возвращает его.
-     * @param row Строка со значениями для тела таблицы
+     * На основе переданного raw создает <tr> элемент для тела таблицы и возвращает его.
+     * @param rowValues Строка со значениями для тела таблицы
      */
-    createBodyRow(row: types.row): HTMLTableRowElement {
-        const cells = this.createBodyCells(row);
+    createBodyRow(rowValues: types.row): HTMLTableRowElement {
+        const cells = this.createBodyCells(rowValues);
         return service.createAndAppend('tr', cells) as HTMLTableRowElement;;
     }
 
     /**
-     * На основе переданного <raw> создает <tr> элемент для футера таблицы и возвращает его.
-     * @param row Строка со значениями для футера таблицы
+     * На основе переданного raw создает <tr> элемент для футера таблицы и возвращает его.
+     * @param rowValues Строка со значениями для футера таблицы
      */
-    createFooterRow(row: types.row): HTMLTableRowElement {
-        const cells = this.createFooterCells(row);
+    createFooterRow(rowValues: types.row): HTMLTableRowElement {
+        const cells = this.createFooterCells(rowValues);
         return service.createAndAppend('tr', cells) as HTMLTableRowElement;;
     }
 
     /**
      * Вызывает getHeaderCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param row Массив строк заголовков таблицы
+     * @param rowValues Массив строк заголовков таблицы
      */
-    *createHeaderCells(row: types.row): Generator<HTMLTableCellElement> {
-        const cells = this.getHeaderCells(row);
-        for ( const rawCell of cells ) {
-            const cell = service.createElement('th', rawCell);
-            cell.setAttribute('scope', 'col');
-            yield cell as HTMLTableCellElement;
+    *createHeaderCells(rowValues: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getHeaderCells(rowValues);
+        for ( const cellValue of cells ) {
+            yield this.createHeaderCell(cellValue);
         }
     }
 
     /**
      * Вызывает getBodyCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param row Массив строк тела таблицы
+     * @param rowValues Массив строк тела таблицы
      */
-    *createBodyCells(row: types.row): Generator<HTMLTableCellElement> {
-        const cells = this.getBodyCells(row);
-        for ( const cell of cells ) {
-            yield service.createElement('td', cell) as HTMLTableCellElement;
+    *createBodyCells(rowValues: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getBodyCells(rowValues);
+        for ( const cellValue of cells ) {
+            yield this.createBodyCell(cellValue);
         }
     }
 
     /**
      * Вызывает getFooterCells и применяет к каждому значению метод для создания ячеек _createCell.
      * Должен возвращать массив из Node - html-элементов таблицы или быть соответствующим генератором.
-     * @param row - Массив строк футера таблицы
+     * @param rowValues - Массив строк футера таблицы
      */
-    *createFooterCells(row: types.row): Generator<HTMLTableCellElement> {
-        const cells = this.getFooterCells(row);
-        for ( const cell of cells ) {
-            yield service.createElement('td', cell) as HTMLTableCellElement;
+    *createFooterCells(rowValues: types.row): Generator<HTMLTableCellElement> {
+        const cells = this.getFooterCells(rowValues);
+        for ( const cellValue of cells ) {
+            yield this.createFooterCell(cellValue);
         }
     }
 
@@ -230,8 +239,13 @@ export class Trender {
      * Целевое использование - определение порядка следования ячеек.
      * @param row Строка в таблице
      */
-    getHeaderCells(row: types.row): types.cell[] {
-        return [...this.headers, ...Object.values(row)];
+    *getHeaderCells(row: types.row): Generator<types.cell> {
+        for ( const defaultHeader of this.headers ) {
+            yield defaultHeader;
+        }
+        for ( const cell of Object.values(row) ) {
+            yield cell;
+        }
     }
 
     /**
@@ -239,8 +253,10 @@ export class Trender {
      * Целевое использование - определение порядка следования ячеек.
      * @param row Строка в таблице
      */
-    getBodyCells(row: types.row): types.cell[] {
-        return Object.values(row);
+    *getBodyCells(row: types.row): Generator<types.cell> {
+        for ( const cell of Object.values(row) ) {
+            yield cell;
+        }
     }
 
     /**
@@ -248,16 +264,24 @@ export class Trender {
      * Целевое использование - определение порядка следования ячеек.
      * @param row Строка в таблице
      */
-    getFooterCells(row: types.row): types.cell[] {
-        return Object.values(row);
+    *getFooterCells(row: types.row): Generator<types.cell> {
+        for ( const cell of Object.values(row) ) {
+            yield cell;
+        }
     }
 
-    /**
-     * Отрисовка нет результата
-     */
-    createNoResult() {
-        const cell = service.createElement('td', 'Нет результата');
-        const row = service.createAndAppend('tr', [cell]);
-        return service.createAndAppend('tbody', [row]);
+    createHeaderCell(cellValue: types.cell): HTMLTableCellElement {
+        const cell = service.createElement('th', cellValue);
+        cell.setAttribute('scope', 'col');
+        return cell as HTMLTableCellElement;
     }
+
+    createBodyCell(cellValue: types.cell): HTMLTableCellElement {
+        return service.createElement('td', cellValue) as HTMLTableCellElement
+    }
+
+    createFooterCell(cellValue: types.cell): HTMLTableCellElement {
+        return service.createElement('td', cellValue) as HTMLTableCellElement
+    }
+
 }
