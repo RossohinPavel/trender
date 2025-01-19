@@ -3,11 +3,12 @@ import { Trender } from "./app/main";
 
 
 class CustomTrender extends Trender {
-    // headers: string[] = ['NewHeader'];
+    headers = ['NewHeader'];
 }
 
 
 function main(event: MouseEvent): void {
+    console.log('table rendered');
     event.preventDefault();
     showTable();
 };

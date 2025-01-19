@@ -7,15 +7,14 @@ import updateSorting from "./sorting/sorting";
  * Основной класс, который будет рендерить таблицу.
  */
 export class Trender {
-    // Типизация для входящей даты
-    data: types.tableData;
-
     // Предустановленные атрибуты
     id = 'trender';
     class = '';
     debug = false;
     headers: string[] = [];
 
+    // Типизация для входящей даты
+    data: types.tableData;
     /**
      * Конструктор
      * @param data Дата, на основе которой будет строиться таблица
@@ -64,7 +63,7 @@ export class Trender {
      * Отрисовка нет результата
      */
     createNoResult() {
-        const cell = service.createElement('td', 'Нет результата');
+        const cell = service.createCell('td', 'Нет результата');
         const row = service.createAndAppend('tr', [cell]);
         return service.createAndAppend('tbody', [row]);
     }
@@ -271,17 +270,25 @@ export class Trender {
     }
 
     createHeaderCell(cellValue: types.cell): HTMLTableCellElement {
-        const cell = service.createElement('th', cellValue);
+        if ( !this.debug ) {
+            cellValue = service.getDefault(cellValue);
+        }
+        const cell = service.createCell('th', cellValue);
         cell.setAttribute('scope', 'col');
-        return cell as HTMLTableCellElement;
+        return cell;
     }
 
     createBodyCell(cellValue: types.cell): HTMLTableCellElement {
-        return service.createElement('td', cellValue) as HTMLTableCellElement
+        if ( !this.debug ) {
+            cellValue = service.getDefault(cellValue);
+        }
+        return service.createCell('td', cellValue);
     }
 
     createFooterCell(cellValue: types.cell): HTMLTableCellElement {
-        return service.createElement('td', cellValue) as HTMLTableCellElement
+        if ( !this.debug ) {
+            cellValue = service.getDefault(cellValue);
+        }
+        return service.createCell('td', cellValue);
     }
-
 }

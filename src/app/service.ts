@@ -17,20 +17,14 @@ type value = HTMLElement | string | number | object;
  * @param value Значение, которое будет добавлено в элемент.
  * @returns HTMLElement
  */
-export function createElement(tagName: string, value: value): HTMLElement {
+export function createCell(tagName: string, value: value): HTMLTableCellElement {
     const element = document.createElement(tagName);
-    switch (typeof value) {
-        case 'object':
-        case 'number' :
-            element.innerText = value.toString();
-            break;
-        case 'string':
-            element.innerText = value;
-            break;
-        default:
-            element.appendChild(value);
-    };
-    return element;
+    if ( value instanceof HTMLElement ) {
+        element.appendChild(value);
+    } else {
+        element.innerText = value.toString();
+    }
+    return element as HTMLTableCellElement;
 }
 
 /**
@@ -48,4 +42,19 @@ export function createAndAppend(tagName: string, values: Iterable<HTMLElement>):
             element.appendChild(value);
         }
         return flag ? element : null;
+}
+
+
+/**
+ * Функция для преобразования значений, таких как undefined, NaN, null к пустой строке.
+ * @param value Значение, которое нужно проверить.
+ */
+export function getDefault(value: any): any {
+    if ( value === undefined || value === null ) {
+        return '';
+    }
+    if ( typeof value === 'number' && isNaN(value) ) {
+        return '';
+    }
+    return value;
 }
