@@ -11,11 +11,10 @@ const dataSample = {
     tbody: ...,
     tfoot: ...
 }
-const table = new Trender({
-    data: dataSample,
-    divId: 'trender',
-})
-table.render()
+const table = new Trender(dataSample);
+table.render('trender');
+// Вы можете получить отрендеренную таблицу вызвав следующий метод
+table.createTable();
 ```
 `thead`, `tbody` и `tfoot` должны быть массивам или объектами которые содержат строки для соответствующей части таблицы.
 Строки, в свою очередь, также должны быть массивами или объектами, которые содержать в себе ячейки для текущей строки.
@@ -53,6 +52,7 @@ class MyTrender extends Trender {
 
 ## TODO
 
+- Подключить документацию
 - рефактор updatesorting на основе передачи туда тэга из метода render
 
 ## License:
