@@ -1,17 +1,40 @@
 ## :factory: Trender
 
-Основной класс, который будет рендерить таблицу.
+Класс для рендера таблицы.
+Основной шаблон использования - переопределение атрибутов и методов в ООП-стиле.
+```js
+// Определяем порядок следования столбцов и соответствующих значений.
+class MyTrender extends Trender {
+    headers = ["Second Column", "First Column"];
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L9)
+    *getBodyCells(row) {
+        yield row.secondAttr;
+        yield row.firstAttr;
+    }
+}
+// После этого, создаем объект `MyTrender` и помещаем в него `data`.
+const table = new MyTrender(data);
+// Вызываем метод `render` для рендера таблицы. 
+// В него нужно передать id тэга div, внутри которого будет рендериться таблица.
+table.render('report');
+```
+`data` - Объект, который должен удовлетворять следующему интерфейсу:
+```js
+const data = {
+    thead?: ...,
+    tbody: ...,      // Обязательный атрибут для тела таблицы.
+    tfoot?: ...
+}
+```
+Значения для `thead`, `tbody` и `tfoot` могут быть любые вложенные структуры. 
+В стандартной реализации - любой объект к которому можно применить `Object.values(data.tbody)`.
+Уровни вложенности должны соответствовать уровням таблицы. Разберем на примере массивов
+Соответственно, 1 уровень вложенности (`data.tbody[1]`) будет расценен как вторая строка соответсвующего элемента таблицы.
+2 уровень (`data.tbody[1][4]`) - 5 ячейка второй строки.
+Для определения порядка следования элементов таблицы можно собирать `data` нужным образом или пользоваться функционалом
+класса и переопределять соответствующие методы и атрибуты.
 
-### Constructors
-
-`public`: Конструктор
-
-Parameters:
-
-* `data`: Дата, на основе которой будет строиться таблица
-
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L41)
 
 ### Methods
 
@@ -53,7 +76,7 @@ Parameters:
 * `parent`: Тег (div), внутри которого будет отрендерена атаблица.
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L30)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L79)
 
 #### :gear: createTable
 
@@ -63,47 +86,47 @@ Parameters:
 | ---------- | ---------- |
 | `createTable` | `() => HTMLTableElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L41)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L90)
 
 #### :gear: createNoResult
 
-Отрисовка нет результата
+Создает единственную ячейку "Нет результата" в теле таблицы и возвращает этот элемент.
 
 | Method | Type |
 | ---------- | ---------- |
-| `createNoResult` | `() => HTMLElement or null` |
+| `createNoResult` | `() => HTMLTableSectionElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L65)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L114)
 
 #### :gear: createHeader
 
-Создает и возвращает Заголовки таблицы.
+Создает и возвращает секцию заголовков таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createHeader` | `() => HTMLTableSectionElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L74)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L123)
 
 #### :gear: createBody
 
-Создает и возвращает тело таблицы.
+Создает и возвращает секцию основной части таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createBody` | `() => HTMLTableSectionElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L90)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L139)
 
 #### :gear: createFooter
 
-Создает и возвращает Нижнюю часть таблицы.
+Создает и возвращает секцию нижней части таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createFooter` | `() => HTMLTableSectionElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L98)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L147)
 
 #### :gear: createHeaderRows
 
@@ -119,7 +142,7 @@ Parameters:
 * `headerValues`: Массив или объект содержащий заголовки таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L109)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L158)
 
 #### :gear: createBodyRows
 
@@ -135,7 +158,7 @@ Parameters:
 * `bodyValues`: Массив или объект содержащий значения для тела таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L121)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L170)
 
 #### :gear: createFooterRows
 
@@ -151,11 +174,11 @@ Parameters:
 * `footerValues`: Массив или объект содержащий значения для футера таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L133)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L182)
 
 #### :gear: getHeaderRows
 
-Метод возвращающий строки для заголовка таблицы в виде массива.
+Метод возвращающий строки для заголовков таблицы. Должен возвращать массив или быть соответствующим генератором.
 Целевое использование - переопределение порядка следования строк.
 
 | Method | Type |
@@ -167,11 +190,11 @@ Parameters:
 * `headerValues`: Массив или объект содержащий заголовки таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L145)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L194)
 
 #### :gear: getBodyRows
 
-Метод возвращающий строки для тела таблицы в виде массива.
+Метод возвращающий строки для тела таблицы. Должен возвращать массив или быть соответствующим генератором.
 Целевое использование - переопределение порядка следования строк.
 
 | Method | Type |
@@ -183,11 +206,11 @@ Parameters:
 * `bodyValues`: Массив или объект содержащий значения для тела таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L156)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L205)
 
 #### :gear: getFooterRows
 
-Метод возвращающий строки для футера таблицы в виде массива.
+Метод возвращающий строки для футера таблицы. Должен возвращать массив или быть соответствующим генератором.
 Целевое использование - переопределение порядка следования строк.
 
 | Method | Type |
@@ -199,52 +222,52 @@ Parameters:
 * `footerValues`: Массив или объект содержащий значения для футера таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L167)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L216)
 
 #### :gear: createHeaderRow
 
-На основе переданного rowValues создает <tr> элемент для заголовков таблицы и возвращает его.
+На основе переданного headerValues создает tr-элемент для заголовков таблицы и возвращает его.
 
 | Method | Type |
 | ---------- | ---------- |
-| `createHeaderRow` | `(rowValues: row) => HTMLTableRowElement` |
+| `createHeaderRow` | `(headerValues: row) => HTMLTableRowElement` |
 
 Parameters:
 
-* `rowValues`: Строка со значениями для заголовков таблицы
+* `headerValues`: Строка со значениями для заголовков таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L177)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L226)
 
 #### :gear: createBodyRow
 
-На основе переданного raw создает <tr> элемент для тела таблицы и возвращает его.
+На основе переданного bodyValues создает tr-элемент для тела таблицы и возвращает его.
 
 | Method | Type |
 | ---------- | ---------- |
-| `createBodyRow` | `(rowValues: row) => HTMLTableRowElement` |
+| `createBodyRow` | `(bodyValues: row) => HTMLTableRowElement` |
 
 Parameters:
 
-* `rowValues`: Строка со значениями для тела таблицы
+* `bodyValues`: Строка со значениями для тела таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L186)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L235)
 
 #### :gear: createFooterRow
 
-На основе переданного raw создает <tr> элемент для футера таблицы и возвращает его.
+На основе переданного footerValues создает tr-элемент для футера таблицы и возвращает его.
 
 | Method | Type |
 | ---------- | ---------- |
-| `createFooterRow` | `(rowValues: row) => HTMLTableRowElement` |
+| `createFooterRow` | `(footerValues: row) => HTMLTableRowElement` |
 
 Parameters:
 
-* `rowValues`: Строка со значениями для футера таблицы
+* `footerValues`: Строка со значениями для футера таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L195)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L244)
 
 #### :gear: createHeaderCells
 
@@ -253,14 +276,14 @@ Parameters:
 
 | Method | Type |
 | ---------- | ---------- |
-| `createHeaderCells` | `(rowValues: row) => Generator<HTMLTableCellElement, any, any>` |
+| `createHeaderCells` | `(headerValues: row) => Generator<HTMLTableCellElement, any, any>` |
 
 Parameters:
 
-* `rowValues`: Массив строк заголовков таблицы
+* `headerValues`: Массив строк заголовков таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L205)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L254)
 
 #### :gear: createBodyCells
 
@@ -269,14 +292,14 @@ Parameters:
 
 | Method | Type |
 | ---------- | ---------- |
-| `createBodyCells` | `(rowValues: row) => Generator<HTMLTableCellElement, any, any>` |
+| `createBodyCells` | `(bodyValues: row) => Generator<HTMLTableCellElement, any, any>` |
 
 Parameters:
 
-* `rowValues`: Массив строк тела таблицы
+* `bodyValues`: Массив строк тела таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L217)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L266)
 
 #### :gear: createFooterCells
 
@@ -285,14 +308,14 @@ Parameters:
 
 | Method | Type |
 | ---------- | ---------- |
-| `createFooterCells` | `(rowValues: row) => Generator<HTMLTableCellElement, any, any>` |
+| `createFooterCells` | `(footerValues: row) => Generator<HTMLTableCellElement, any, any>` |
 
 Parameters:
 
-* `rowValues`: - Массив строк футера таблицы
+* `footerValues`: - Массив строк футера таблицы
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L229)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L278)
 
 #### :gear: getHeaderCells
 
@@ -308,7 +331,7 @@ Parameters:
 * `row`: Строка в таблице
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L241)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L290)
 
 #### :gear: getBodyCells
 
@@ -324,7 +347,7 @@ Parameters:
 * `row`: Строка в таблице
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L255)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L304)
 
 #### :gear: getFooterCells
 
@@ -340,76 +363,107 @@ Parameters:
 * `row`: Строка в таблице
 
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L266)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L315)
 
 #### :gear: createHeaderCell
+
+Создает th-элемент ячейки для строки заголовка таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createHeaderCell` | `(cellValue: cell) => HTMLTableCellElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L272)
+Parameters:
+
+* `cellValue`: Значение, которое будет обернутов в th.
+
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L325)
 
 #### :gear: createBodyCell
+
+Создает td-элемент ячейки для строки тела таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createBodyCell` | `(cellValue: cell) => HTMLTableCellElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L281)
+Parameters:
+
+* `cellValue`: Значение, которое будет обернутов в td.
+
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L338)
 
 #### :gear: createFooterCell
+
+Создает td-элемент ячейки для строки футера таблицы.
 
 | Method | Type |
 | ---------- | ---------- |
 | `createFooterCell` | `(cellValue: cell) => HTMLTableCellElement` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L288)
+Parameters:
+
+* `cellValue`: Значение, которое будет обернутов в td.
+
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L349)
 
 ### Properties
 
+- [data](#gear-data)
 - [id](#gear-id)
 - [class](#gear-class)
 - [debug](#gear-debug)
 - [headers](#gear-headers)
-- [data](#gear-data)
-
-#### :gear: id
-
-| Property | Type |
-| ---------- | ---------- |
-| `id` | `string` |
-
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L11)
-
-#### :gear: class
-
-| Property | Type |
-| ---------- | ---------- |
-| `class` | `string` |
-
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L12)
-
-#### :gear: debug
-
-| Property | Type |
-| ---------- | ---------- |
-| `debug` | `boolean` |
-
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L13)
-
-#### :gear: headers
-
-| Property | Type |
-| ---------- | ---------- |
-| `headers` | `string[]` |
-
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L14)
 
 #### :gear: data
+
+Дата, на основе которой строится таблица.
 
 | Property | Type |
 | ---------- | ---------- |
 | `data` | `tableData` |
 
-[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L17)
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L45)
+
+#### :gear: id
+
+ИД, который будет присвоен таблице.
+
+| Property | Type |
+| ---------- | ---------- |
+| `id` | `string` |
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L50)
+
+#### :gear: class
+
+Классы, которые будут дабавлены таблице.
+
+| Property | Type |
+| ---------- | ---------- |
+| `class` | `string` |
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L55)
+
+#### :gear: debug
+
+Режим дебага. Если включен, то такие значения, как `undifined` будут отображаться как есть.
+
+| Property | Type |
+| ---------- | ---------- |
+| `debug` | `boolean` |
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L60)
+
+#### :gear: headers
+
+Заголовки таблицы как правило статичны, а данные изменяются. Их можно указать здесь как массив строк.
+
+| Property | Type |
+| ---------- | ---------- |
+| `headers` | `string[]` |
+
+[:link: Source](https://github.com/RossohinPavel/trender/tree/main/src/app/main.ts#L65)
